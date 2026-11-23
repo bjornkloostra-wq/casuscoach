@@ -61,13 +61,16 @@
   function zichtbareBegrippen() { return D.begrippen.filter(inNiv); }
 
   /* ---------- Router ---------- */
-  var VIEWS = {}, NAVOF = { flitskaarten: 'oefenen', 'feit-of-mening': 'oefenen', 'welke-bril': 'oefenen', docent: '' };
+  var VIEWS = {}, NAVOF = { flitskaarten: 'oefenen', 'feit-of-mening': 'oefenen', 'welke-bril': 'oefenen', koppelen: 'oefenen', gatentekst: 'oefenen', docent: '' };
   function huidigeHash() { var h = (location.hash || '').slice(1); try { h = decodeURIComponent(h); } catch (e) { } return h || 'start'; }
   function route(keepScroll) {
-    stopSpeech(); hideTip();
+    stopSpeech(); hideTip(); DND.actief = null; DND.sel = null;
     var h = huidigeHash(), nav = 'start';
-    var m = /^casus-(\d+)(?:-(lezen|brillen|vragen))?$/.exec(h);
+    var m = /^casus-(\d+)(?:-(lezen|achtergrond|brillen|vragen))?$/.exec(h);
+    var mk = /^koppelen-([a-z0-9]+)$/.exec(h), mg = /^gatentekst-(\d+)$/.exec(h);
     if (m && CASUS[+m[1] - 1]) { viewCasus(CASUS[+m[1] - 1], m[2] || 'lezen'); nav = 'casussen'; }
+    else if (mk) { KOP.set = mk[1]; kopStart(); VIEWS.koppelen(); nav = 'oefenen'; }
+    else if (mg && CASUS[+mg[1] - 1]) { viewGat(CASUS[+mg[1] - 1]); nav = 'oefenen'; }
     else if (VIEWS[h]) { VIEWS[h](); nav = (h in NAVOF) ? NAVOF[h] : h; }
     else { VIEWS.start(); nav = 'start'; }
     $$('[data-nav]').forEach(function (a) { if (a.getAttribute('data-nav') === nav) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
@@ -75,7 +78,7 @@
     if (!keepScroll) window.scrollTo(0, 0);
   }
   window.addEventListener('hashchange', function () { route(false); });
-  function setNiveau(n) { if (!D.niveaus[n]) return; S.niveau = n; sset('niveau', n); FK.stage = 'setup'; GAME = {}; route(true); }
+  function setNiveau(n) { if (!D.niveaus[n]) return; S.niveau = n; sset('niveau', n); FK.stage = 'setup'; GAME = {}; KOP.stage = 'setup'; GAT.key = null; route(true); }
 
   /* ---------- Startpagina ---------- */
   function casusCard(c) {
@@ -112,9 +115,11 @@
       '<div class="row"><a class="btn" href="#flitskaarten">Oefen met flitskaarten</a><a class="btn ghost" href="#begrippen">Begrippenlijst</a></div></article>' +
       '<article class="panel"><p class="eyebrow">Games</p><h2>Even snel oefenen</h2><div class="gamelinks">' +
       gameLink('feit-of-mening', 'Feit of mening?', 'Herken feiten, meningen en stereotypen.') +
-      gameLink('welke-bril', 'Welke bril?', 'Koppel een uitspraak aan de juiste exameneenheid.') + '</div></article></section>';
+      gameLink('welke-bril', 'Welke bril?', 'Koppel een uitspraak aan de juiste exameneenheid.') +
+      '<a class="glink" href="#koppelen"><b>Begrippen koppelen</b><span>Sleep begrippen naar de goede omschrijving.</span></a>' +
+      '<a class="glink" href="#gatentekst"><b>Gatenteksten</b><span>Zet het goede begrip op de goede plek in de tekst.</span></a></div></article></section>';
     h += '<section class="block"><h2>Zo pak je een casus aan</h2><ol class="steps">' +
-      '<li><b>Lees</b><span>Lees de tekst van jouw niveau. Tik op moeilijke woorden voor uitleg.</span></li>' +
+      '<li><b>Lees en kijk</b><span>Lees de tekst van jouw niveau en bekijk de achtergrond met video\'s.</span></li>' +
       '<li><b>Kijk door vier brillen</b><span>Welke waarden, belangen, macht en beelden spelen er?</span></li>' +
       '<li><b>Maak de vragen</b><span>Schrijf of zeg je antwoord en vergelijk het met het modelantwoord.</span></li>' +
       '<li><b>Vertel het hardop</b><span>Leg de casus uit zonder in de tekst te kijken, net als op het mondeling.</span></li></ol></section>';
@@ -188,6 +193,45 @@
       '<section class="sidebox"><h3>Het originele artikel</h3><p class="small muted">De casus is een bewerking van een nieuwsbericht. Lees het origineel en zoek meer informatie bij betrouwbare bronnen.</p>' +
       '<a class="btn" href="' + esc(c.bron.url) + '" target="_blank" rel="noopener">Lees bij ' + esc(c.bron.medium) + ' ↗</a>' +
       '<ul class="links">' + c.verder.map(function (v) { return '<li><a href="' + esc(v.u) + '" target="_blank" rel="noopener">' + esc(v.t) + ' ↗</a></li>'; }).join('') + '</ul></section></aside></div>' +
+      '<div class="nextstep"><a class="btn" href="#casus-' + c.nr + '-achtergrond">Verder: lees de achtergrond en bekijk video\'s →</a></div>';
+  }
+
+  /* ---------- Achtergrond ---------- */
+  var SOORTKLEUR = { Uitleg: 'cs', Nieuws: 'mz', Overheid: 'alg', Onderzoek: 'alg', Mening: 'bs', Satire: 'bs', 'Let op': 'bs', Archief: 'sv', Voorlichting: 'sv' };
+  var PLAY = '<svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" style="fill:currentColor"/><path d="M10 7.5l6.5 4.5-6.5 4.5z" style="fill:var(--video)"/></svg>';
+  function mediaCard(m) {
+    var meta = [m.maker, m.jaar, m.duur].filter(Boolean).join(' · ');
+    var schooltv = /schooltv/i.test(m.maker || ''), video = m.type !== 'web' || schooltv;
+    var href = m.type === 'youtube' ? 'https://www.youtube.com/watch?v=' + m.id : m.url;
+    var label = m.type === 'youtube' ? 'Open op YouTube' : m.type === 'schatkamer' ? 'Bekijk in de Schatkamer' : schooltv ? 'Bekijk bij Schooltv' : 'Lees bij ' + m.maker;
+    var top = m.type === 'youtube'
+      ? '<div class="vid" id="vid-' + esc(m.id) + '"><button type="button" class="vidbtn" data-act="yt" data-id="' + esc(m.id) + '" data-titel="' + esc(m.titel) + '">' + PLAY + '<span>Video laden</span><small>Pas na deze klik maakt de site verbinding met YouTube.</small></button></div>'
+      : '<div class="mstrip ' + (m.type === 'schatkamer' ? 'sv' : schooltv ? 'cs' : 'alg') + '">' + (m.type === 'schatkamer' ? 'Archiefbeeld · De Schatkamer van Beeld & Geluid' : schooltv ? 'Video · Schooltv' : 'Artikel of webpagina') + '</div>';
+    return '<article class="mcard">' + top + '<div class="mbody"><div class="mtags"><span class="pill ' + (SOORTKLEUR[m.soort] || 'alg') + '">' + esc(m.soort) + '</span><span class="small muted">' + esc(meta) + '</span></div>' +
+      '<h3>' + esc(m.titel) + '</h3><p class="small"><strong>Waarom deze bron?</strong> ' + esc(m.waarom) + '</p>' +
+      '<p class="kijk"><strong>' + (video ? 'Kijkvraag' : 'Leesvraag') + ':</strong> ' + esc(m.kijk) + '</p>' +
+      '<a class="mlink" href="' + esc(href) + '" target="_blank" rel="noopener">' + esc(label) + ' ↗</a></div></article>';
+  }
+  function bronCheck() {
+    return '<section class="sidebox"><h3>Check je bron</h3><ol class="checklist">' +
+      '<li><b>Wie</b> heeft het gemaakt?</li><li><b>Wanneer</b>? Is het nog actueel?</li><li><b>Waarom</b>: informeren, overtuigen, vermaken of verkopen?</li><li><b>Feit of mening</b>? Kun je het controleren?</li></ol>' +
+      '<p class="lbl">Soorten bronnen</p><div class="chips">' + ['Uitleg', 'Nieuws', 'Overheid', 'Onderzoek', 'Archief', 'Voorlichting', 'Mening', 'Satire', 'Let op'].map(function (x) { return '<span class="pill ' + SOORTKLEUR[x] + '">' + x + '</span>'; }).join(' ') + '</div>' +
+      '<p class="small muted">Bij mening, satire en "let op" leer je veel, maar kijk je extra kritisch.</p></section>';
+  }
+  function tabAchtergrond(c) {
+    var A = (window.ACHTERGROND || {})[c.nr];
+    if (!A) return '<p>Voor deze casus is nog geen achtergrond toegevoegd in achtergrond.js.</p>';
+    var body = ((A.tekst || {})[niv()] || []).map(function (p) {
+      if (p.indexOf('## ') === 0) return '<h3>' + esc(p.slice(3)) + '</h3>';
+      if (p.indexOf('! ') === 0) return '<aside class="nieuws"><p class="lbl">Laatste ontwikkeling</p><p>' + esc(p.slice(2)) + '</p></aside>';
+      return '<p>' + esc(p) + '</p>';
+    }).join('');
+    var media = (A.media || []).filter(function (m) { return (m.n || []).indexOf(niv()) > -1; });
+    return '<div class="readwrap"><article class="reader"><div class="reader-top"><span class="pill">Achtergrond voor niveau ' + esc(N().naam) + '</span></div><h2 class="rtitle">Achtergrond: ' + esc(c.kort) + '</h2>' + body + '</article><aside class="side">' + bronCheck() + '</aside></div>' +
+      '<section class="block"><h2>Kijken en lezen</h2><p class="muted" style="max-width:70ch">' + (niv() === 'gt'
+        ? 'Op GL/TL zie je ook bronnen met een mening, satire of een sensationele titel. Daar leer je veel van, maar kijk er kritisch naar. Bekijk minstens drie bronnen en beantwoord de kijkvragen.'
+        : 'Bekijk minstens twee bronnen en beantwoord de kijkvraag. Zo leer je meer over de casus dan alleen uit de tekst.') + '</p>' +
+      '<div class="mgrid">' + media.map(mediaCard).join('') + '</div></section>' +
       '<div class="nextstep"><a class="btn" href="#casus-' + c.nr + '-brillen">Verder: bekijk de casus door vier brillen →</a></div>';
   }
 
@@ -236,14 +280,15 @@
     var qs = vragen(c);
     return '<div class="qsum" id="qsum">' + qsumHTML(stats(c)) + '</div>' +
       '<p class="muted small">Schrijf je antwoord op of zeg het hardop. Bekijk daarna het modelantwoord en geef aan hoe het ging. Je antwoorden worden alleen op dit apparaat bewaard.</p>' +
-      '<div class="qlist">' + qs.map(function (q) { return qCard(c, q); }).join('') + '</div>';
+      '<div class="qlist">' + qs.map(function (q) { return qCard(c, q); }).join('') + '</div>' +
+      '<section class="tipbox"><h3>Oefen verder met deze casus</h3><div class="row"><a class="btn" href="#gatentekst-' + c.nr + '">Gatentekst</a><a class="btn ghost" href="#koppelen-c' + c.nr + '">Begrippen koppelen</a><a class="btn ghost" href="#flitskaarten">Flitskaarten</a></div></section>';
   }
 
   var huidigeCasus = null;
   function viewCasus(c, tab) {
     huidigeCasus = c;
     var s = stats(c);
-    var tabs = [['lezen', 'Lezen'], ['brillen', 'Vier brillen'], ['vragen', 'Vragen']];
+    var tabs = [['lezen', 'Lezen'], ['achtergrond', 'Achtergrond'], ['brillen', 'Vier brillen'], ['vragen', 'Vragen']];
     var h = '<div class="view"><div class="crumbs"><a href="#casussen">← Alle casussen</a></div>' +
       '<header class="chead"><p class="eyebrow">Casus ' + c.nr + ' · bron: ' + esc(c.bron.medium) + '</p><h1>' + esc(c.titel) + '</h1></header>' +
       '<nav class="ctabs" aria-label="Onderdelen van casus ' + c.nr + '">' + tabs.map(function (t) {
@@ -251,7 +296,7 @@
         return '<a class="ctab' + (on ? ' on' : '') + '" href="#casus-' + c.nr + '-' + t[0] + '"' + (on ? ' aria-current="page"' : '') + '>' + t[1] +
           (t[0] === 'vragen' ? ' <span class="cnt" id="tabcnt">' + s.goed + '/' + s.tot + '</span>' : '') + '</a>';
       }).join('') + '</nav>';
-    h += tab === 'brillen' ? tabBrillen(c) : tab === 'vragen' ? tabVragen(c) : tabLezen(c);
+    h += tab === 'achtergrond' ? tabAchtergrond(c) : tab === 'brillen' ? tabBrillen(c) : tab === 'vragen' ? tabVragen(c) : tabLezen(c);
     var prev = CASUS[c.nr - 2], next = CASUS[c.nr];
     h += '<nav class="pager" aria-label="Andere casussen">' + (prev ? '<a href="#casus-' + prev.nr + '">← Casus ' + prev.nr + ': ' + esc(prev.kort) + '</a>' : '<span></span>') +
       (next ? '<a href="#casus-' + next.nr + '">Casus ' + next.nr + ': ' + esc(next.kort) + ' →</a>' : '') + '</nav></div>';
@@ -344,6 +389,8 @@
       '<a class="ocard" href="#flitskaarten"><b>Flitskaarten</b><span>Leer de begrippen. Kaarten die je nog niet kent, komen vaker terug.</span><span class="tr">' + ken + ' van ' + tot.length + ' begrippen gekend</span></a>' +
       '<a class="ocard" href="#feit-of-mening"><b>Feit of mening?</b><span>Is een uitspraak uit de casussen een feit of een mening? Herken ook stereotypen.</span><span class="tr">' + best('feit-of-mening') + '</span></a>' +
       '<a class="ocard" href="#welke-bril"><b>Welke bril?</b><span>Bij welke exameneenheid hoort een uitspraak: waarden, belangen, macht of beeldvorming?</span><span class="tr">' + best('welke-bril') + '</span></a>' +
+      '<a class="ocard" href="#koppelen"><b>Begrippen koppelen</b><span>Sleep elk begrip naar de goede omschrijving. Kies alle begrippen, één exameneenheid of één casus.</span><span class="tr">' + ({ bb: 4, kb: 5, gt: 6 })[niv()] + ' begrippen per ronde</span></a>' +
+      '<a class="ocard" href="#gatentekst"><b>Gatenteksten</b><span>Per casus een korte tekst met open plekken. Zet het goede begrip op de goede plek.</span><span class="tr">5 casussen</span></a>' +
       '</div></div>';
     document.title = 'Oefenen · Casuscoach';
   };
@@ -474,6 +521,160 @@
   VIEWS['feit-of-mening'] = function () { viewGame('feit-of-mening'); };
   VIEWS['welke-bril'] = function () { viewGame('welke-bril'); };
 
+  /* ---------- Slepen en plaatsen (koppelen en gatenteksten) ---------- */
+  var DND = { sel: null, actief: null, stilKlik: 0, focus: null };
+  function oefening() { return DND.actief === 'kop' ? KOP : DND.actief === 'gat' ? GAT : null; }
+  function herteken() {
+    if (DND.actief === 'kop') VIEWS.koppelen(); else if (DND.actief === 'gat') viewGat(GAT.casus);
+    if (DND.focus) { var f = $(DND.focus); if (f) f.focus({ preventScroll: true }); DND.focus = null; }
+  }
+  function gebruikt(ex, id) { return Object.keys(ex.place).some(function (z) { return ex.place[z] === id; }); }
+  function plaats(id, zone) {
+    var ex = oefening(); if (!ex || ex.checked) return;
+    Object.keys(ex.place).forEach(function (z) { if (ex.place[z] === id) delete ex.place[z]; });
+    ex.place[zone] = id; DND.sel = null; herteken();
+  }
+  function chipHTML(id, label, weg) {
+    if (weg) return '';
+    return '<button type="button" class="dchip" data-chip="' + id + '" aria-pressed="' + (DND.sel === id) + '">' + esc(label) + '</button>';
+  }
+  function zoneHTML(id, label, cls, leeg) {
+    return '<button type="button" class="dzone' + (label ? ' vol' : '') + (cls ? ' ' + cls : '') + '" data-zone="' + id + '">' + (label ? esc(label) : '<span class="leeg">' + esc(leeg) + '</span>') + '</button>';
+  }
+  var drag = null;
+  document.addEventListener('pointerdown', function (e) {
+    var c = e.target.closest && e.target.closest('[data-chip]');
+    if (!c || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    drag = { id: c.getAttribute('data-chip'), x: e.clientX, y: e.clientY, el: c, ghost: null };
+  });
+  document.addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    if (!drag.ghost) {
+      if (Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) < 8) return;
+      drag.ghost = drag.el.cloneNode(true); drag.ghost.className = 'dchip ghost'; drag.ghost.removeAttribute('data-chip');
+      document.body.appendChild(drag.ghost); drag.el.classList.add('dragging');
+    }
+    e.preventDefault();
+    drag.ghost.style.left = (e.clientX - drag.ghost.offsetWidth / 2) + 'px';
+    drag.ghost.style.top = (e.clientY - drag.ghost.offsetHeight / 2) + 'px';
+    var over = document.elementFromPoint(e.clientX, e.clientY), z = over && over.closest('[data-zone]');
+    $$('.dzone.over').forEach(function (x) { if (x !== z) x.classList.remove('over'); });
+    if (z) z.classList.add('over');
+  }, { passive: false });
+  function eindDrag(e, annuleer) {
+    if (!drag) return;
+    var d = drag; drag = null;
+    if (!d.ghost) return;
+    d.ghost.remove(); d.el.classList.remove('dragging'); DND.stilKlik = Date.now();
+    $$('.dzone.over').forEach(function (x) { x.classList.remove('over'); });
+    if (annuleer) return;
+    var over = document.elementFromPoint(e.clientX, e.clientY), z = over && over.closest('[data-zone]');
+    if (z) plaats(d.id, z.getAttribute('data-zone'));
+  }
+  document.addEventListener('pointerup', function (e) { eindDrag(e, false); });
+  document.addEventListener('pointercancel', function (e) { eindDrag(e, true); });
+
+  /* ---------- Begrippen koppelen ---------- */
+  var KOP = { stage: 'setup', set: 'alle', zones: [], bank: [], place: {}, checked: false };
+  function kopAantal() { return { bb: 4, kb: 5, gt: 6 }[niv()]; }
+  function kopStart() {
+    var set = fkSets().filter(function (s) { return s.id === KOP.set; })[0] || fkSets()[0];
+    var list = shuffle(set.list.slice()).sort(function (a, b) { return (S.kaart[a.n] || 0) - (S.kaart[b.n] || 0); }).slice(0, kopAantal());
+    if (list.length < 2) { KOP.stage = 'setup'; return; }
+    KOP.zones = shuffle(list.map(function (b, i) { return { id: 'z' + i, n: b.n }; }));
+    KOP.bank = shuffle(list.map(function (b, i) { return { id: 'k' + i, n: b.n }; }));
+    KOP.place = {}; KOP.checked = false; KOP.stage = 'play'; DND.sel = null;
+  }
+  VIEWS.koppelen = function () {
+    DND.actief = 'kop';
+    var h = '<div class="view"><section class="hello"><p class="eyebrow">Oefenen · niveau ' + esc(N().naam) + '</p><h1>Begrippen koppelen</h1>' +
+      '<p class="lead">Sleep elk begrip naar de goede omschrijving. Lukt slepen niet? Tik dan eerst op een begrip en daarna op een vak.</p></section>';
+    if (KOP.stage === 'setup') {
+      h += '<section class="block"><h2>Welke begrippen wil je oefenen?</h2><div class="setgrid">' + fkSets().map(function (s) {
+        return '<button type="button" class="setbtn" data-act="kop-set" data-set="' + s.id + '" aria-pressed="' + (KOP.set === s.id) + '"' + (s.list.length >= 2 ? '' : ' disabled') + '><span>' + esc(s.label) + '</span><span class="n">' + s.list.length + '</span></button>';
+      }).join('') + '</div></section><div class="row"><button type="button" class="btn" data-act="kop-start">Start met ' + kopAantal() + ' begrippen</button></div>';
+    } else {
+      var ok = 0;
+      var paren = KOP.zones.map(function (z) {
+        var cid = KOP.place[z.id], item = cid ? KOP.bank.filter(function (b) { return b.id === cid; })[0] : null, goed = !!item && item.n === z.n;
+        if (KOP.checked && goed) ok++;
+        var cls = KOP.checked ? (goed ? 'ok' : 'bad') : '', b = BMAP[z.n];
+        return '<li class="pair ' + cls + '">' + zoneHTML(z.id, item ? item.n : '', cls, 'Sleep hier een begrip') + '<p>' + esc(maskeer(b.d, b.n)) + '</p>' +
+          (KOP.checked && !goed ? '<p class="small fix">Goed antwoord: ' + chip(z.n) + '</p>' : '') + '</li>';
+      }).join('');
+      var vol = Object.keys(KOP.place).length === KOP.zones.length;
+      h += '<div class="dnd"><div class="bankbox"><p class="lbl">Begrippen</p><div class="chips">' +
+        (KOP.bank.map(function (b) { return chipHTML(b.id, b.n, gebruikt(KOP, b.id)); }).join('') || '<span class="small muted">Alle begrippen zijn geplaatst.</span>') + '</div></div>' +
+        '<ol class="pairs">' + paren + '</ol>';
+      if (!KOP.checked) {
+        h += '<div class="row"><button type="button" class="btn" data-act="kop-check"' + (vol ? '' : ' disabled') + '>Controleer</button>' + (vol ? '' : '<span class="small muted">Plaats eerst alle begrippen.</span>') + '<button type="button" class="linkbtn" data-act="kop-stop">Stoppen</button></div>';
+      } else {
+        var alles = ok === KOP.zones.length;
+        h += '<div class="fb" aria-live="polite"><p class="' + (alles ? 'good' : 'bad') + '"><strong>' + ok + ' van de ' + KOP.zones.length + ' goed.</strong> ' + (alles ? 'Alles goed gekoppeld!' : 'Bij de rode vakken zie je het goede begrip. Tik erop voor uitleg.') + '</p>' +
+          '<div class="row"><button type="button" class="btn" data-act="kop-again">Nieuwe ronde</button><button type="button" class="btn ghost" data-act="kop-stop">Andere begrippen kiezen</button></div></div>';
+      }
+      h += '</div>';
+    }
+    app.innerHTML = h + '</div>';
+    document.title = 'Begrippen koppelen · Casuscoach';
+  };
+
+  /* ---------- Gatenteksten ---------- */
+  var GAT = { key: null, casus: null, item: null, parts: [], gaps: [], bank: [], place: {}, checked: false };
+  function gatItem(c) { return (D.gatenteksten || []).filter(function (g) { return g.c === c.nr && g.n.indexOf(niv()) > -1; })[0]; }
+  function gatStart(c) {
+    var it = gatItem(c);
+    GAT.casus = c; GAT.item = it; GAT.key = c.nr + '-' + niv(); GAT.place = {}; GAT.checked = false; DND.sel = null; GAT.parts = []; GAT.gaps = []; GAT.bank = [];
+    if (!it) return;
+    var re = /\[\[(.+?)\]\]/g, last = 0, mm, i = 0;
+    while ((mm = re.exec(it.tekst))) {
+      GAT.parts.push({ t: it.tekst.slice(last, mm.index) });
+      var a = mm[1].split('='), g = { id: 'g' + (i++), antw: a[0].trim(), begrip: (a[1] || a[0]).trim() };
+      GAT.gaps.push(g); GAT.parts.push({ gap: g }); last = re.lastIndex;
+    }
+    GAT.parts.push({ t: it.tekst.slice(last) });
+    var extra = niv() === 'bb' ? [] : niv() === 'kb' ? (it.afleiders || []).slice(0, 2) : (it.afleiders || []);
+    GAT.bank = shuffle(GAT.gaps.map(function (g) { return g.antw; }).concat(extra).map(function (w, j) { return { id: 'w' + j, w: w }; }));
+  }
+  function viewGat(c) {
+    DND.actief = 'gat';
+    if (GAT.key !== c.nr + '-' + niv()) gatStart(c);
+    var h = '<div class="view"><div class="crumbs"><a href="#gatentekst">← Alle gatenteksten</a></div><section class="hello"><p class="eyebrow">Gatentekst · casus ' + c.nr + ' · niveau ' + esc(N().naam) + '</p><h1>' + esc(c.kort) + '</h1>' +
+      '<p class="lead">Sleep de woorden naar de goede plek in de tekst. Lukt slepen niet? Tik eerst op een woord en daarna op een open plek.' + (niv() === 'bb' ? '' : ' Let op: er zitten ook woorden tussen die niet passen.') + '</p></section>';
+    if (!GAT.item) { app.innerHTML = h + '<p>Voor deze casus staat nog geen gatentekst op dit niveau in inhoud.js.</p></div>'; return; }
+    var ok = 0;
+    var tekst = GAT.parts.map(function (p) {
+      if (!p.gap) return esc(p.t);
+      var g = p.gap, cid = GAT.place[g.id], w = cid ? GAT.bank.filter(function (b) { return b.id === cid; })[0] : null;
+      var goed = !!w && w.w.toLowerCase() === g.antw.toLowerCase();
+      if (GAT.checked && goed) ok++;
+      var cls = GAT.checked ? (goed ? 'ok' : 'bad') : '';
+      return zoneHTML(g.id, w ? w.w : '', 'inline ' + cls, 'sleep hier') + (GAT.checked && !goed ? '<span class="fixw">→ ' + esc(g.antw) + '</span>' : '');
+    }).join('');
+    var vol = Object.keys(GAT.place).length === GAT.gaps.length;
+    h += '<div class="dnd"><div class="bankbox"><p class="lbl">Woorden</p><div class="chips">' +
+      (GAT.bank.map(function (b) { return chipHTML(b.id, b.w, gebruikt(GAT, b.id)); }).join('') || '<span class="small muted">Alle woorden zijn geplaatst.</span>') + '</div></div>' +
+      '<article class="reader gaptext"><p>' + tekst + '</p></article>';
+    if (!GAT.checked) {
+      h += '<div class="row"><button type="button" class="btn" data-act="gat-check"' + (vol ? '' : ' disabled') + '>Controleer</button>' + (vol ? '' : '<span class="small muted">Vul eerst alle open plekken.</span>') + '<button type="button" class="linkbtn" data-act="gat-leeg">Alles leegmaken</button></div>';
+    } else {
+      var begr = []; GAT.gaps.forEach(function (g) { if (BMAP[g.begrip] && inNiv(BMAP[g.begrip]) && begr.indexOf(g.begrip) < 0) begr.push(g.begrip); });
+      var alles = ok === GAT.gaps.length;
+      h += '<div class="fb" aria-live="polite"><p class="' + (alles ? 'good' : 'bad') + '"><strong>' + ok + ' van de ' + GAT.gaps.length + ' goed.</strong> ' + (alles ? 'Helemaal goed!' : 'Bij de rode plekken zie je het goede woord.') + '</p>' +
+        (GAT.item.uitleg ? '<p>' + esc(GAT.item.uitleg) + '</p>' : '') +
+        (begr.length ? '<div class="chips"><span class="small muted">Begrippen uit deze tekst:</span> ' + begr.map(function (n) { return chip(n); }).join('') + '</div>' : '') +
+        '<div class="row"><button type="button" class="btn" data-act="gat-opnieuw">Opnieuw proberen</button>' + (CASUS[c.nr] ? '<a class="btn ghost" href="#gatentekst-' + (c.nr + 1) + '">Volgende casus →</a>' : '<a class="btn ghost" href="#oefenen">Andere oefening</a>') + '</div></div>';
+    }
+    app.innerHTML = h + '</div></div>';
+    document.title = 'Gatentekst casus ' + c.nr + ' · Casuscoach';
+  }
+  VIEWS.gatentekst = function () {
+    app.innerHTML = '<div class="view"><section class="hello"><p class="eyebrow">Oefenen · niveau ' + esc(N().naam) + '</p><h1>Gatenteksten</h1>' +
+      '<p class="lead">Elke casus heeft een korte tekst met open plekken. Zet het goede begrip op de goede plek.' + (niv() === 'bb' ? '' : ' Op jouw niveau staan er ook woorden in de woordbank die niet passen.') + '</p></section><div class="clist">' +
+      CASUS.map(function (c) { return '<a class="ccard wide ' + c.hoofd + '" href="#gatentekst-' + c.nr + '"><span class="cnr">' + c.nr + '</span><span class="cbody"><span class="ctitle">' + esc(c.kort) + '</span><span class="csub">' + esc(c.titel) + '</span></span></a>'; }).join('') + '</div></div>';
+    document.title = 'Gatenteksten · Casuscoach';
+  };
+
   /* ---------- Docent ---------- */
   var resetVraag = false;
   VIEWS.docent = function () {
@@ -482,9 +683,10 @@
       '<h2>Waar komt de inhoud vandaan?</h2><ul><li>De casusteksten per niveau komen uit de vakinformatie staatsexamen ' + D.jaar + ' van het College voor Toetsen en Examens (BB, KB en GL-TL).</li>' +
       '<li>De begrippen volgen de begrippenlijst uit dezelfde vakinformatie: 59 voor BB en KB, 62 voor GL/TL.</li>' +
       '<li>De uitleg van begrippen, de analyses per bril, de vragen en de modelantwoorden zijn een eerste versie. Controleer ze met je eigen lesmethode voordat leerlingen ermee werken.</li></ul>' +
-      '<h2>Privacy</h2><p>Er is geen account en er wordt niets verstuurd. Niveau, antwoorden en voortgang worden alleen in de browser van de leerling bewaard. Op een gedeelde computer kan een leerling dat hieronder wissen.</p>' +
+      '<h2>Privacy</h2><p>Er is geen account en er wordt niets verstuurd. Niveau, antwoorden en voortgang worden alleen in de browser van de leerling bewaard. Op een gedeelde computer kan een leerling dat hieronder wissen. YouTube-video\'s worden pas geladen als een leerling op <em>Video laden</em> klikt; ze komen via youtube-nocookie.com.</p>' +
       '<h2>Inhoud aanpassen</h2><ul><li><code>teksten.js</code>: de casusteksten per niveau. Elke regel is een alinea.</li>' +
-      '<li><code>inhoud.js</code>: begrippen, moeilijke woorden, brillen, vragen en de uitspraken van de games.</li>' +
+      '<li><code>inhoud.js</code>: begrippen, moeilijke woorden, brillen, vragen, gatenteksten en de uitspraken van de games.</li>' +
+      '<li><code>achtergrond.js</code>: de achtergrondtekst per niveau en de video\'s en bronnen per casus.</li>' +
       '<li>Volgend schooljaar vervang je de vijf casussen in beide bestanden. De rest van de website past zich vanzelf aan.</li></ul>' +
       '<h2>Voortgang wissen</h2><p>Hiermee wis je het niveau, alle antwoorden en de voortgang op dit apparaat.</p>' +
       (resetVraag ? '<div class="confirm"><strong>Weet je het zeker? Dit kun je niet ongedaan maken.</strong><div class="row"><button type="button" class="btn" data-act="reset-ja">Ja, wis alles</button><button type="button" class="btn ghost" data-act="reset-nee">Annuleren</button></div></div>'
@@ -504,6 +706,25 @@
 
     var bg = e.target.closest('[data-begrip]');
     if (bg) { openBegrip(bg.getAttribute('data-begrip')); return; }
+
+    var ch = e.target.closest('[data-chip]');
+    if (ch) {
+      if (Date.now() - DND.stilKlik < 120) return;
+      var cid = ch.getAttribute('data-chip');
+      DND.sel = DND.sel === cid ? null : cid;
+      if (e.detail === 0) DND.focus = '[data-chip="' + cid + '"]';
+      herteken(); return;
+    }
+    var zn = e.target.closest('[data-zone]');
+    if (zn) {
+      if (Date.now() - DND.stilKlik < 120) return;
+      var ex = oefening(); if (!ex || ex.checked) return;
+      var zid = zn.getAttribute('data-zone');
+      if (e.detail === 0) DND.focus = '[data-zone="' + zid + '"]';
+      if (DND.sel) plaats(DND.sel, zid);
+      else if (ex.place[zid]) { delete ex.place[zid]; herteken(); }
+      return;
+    }
 
     var el = e.target.closest('[data-act]');
     if (!el) return;
@@ -548,11 +769,23 @@
         viewGame(gid2); break;
       }
       case 'g-again': gameNieuw(el.getAttribute('data-g')); viewGame(el.getAttribute('data-g')); break;
+      case 'yt': {
+        var vid = el.getAttribute('data-id'), box = document.getElementById('vid-' + vid);
+        if (box) box.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(vid) + '?rel=0&autoplay=1" title="' + esc(el.getAttribute('data-titel') || 'Video') + '" allow="autoplay; encrypted-media; picture-in-picture; fullscreen"></iframe>';
+        break;
+      }
+      case 'kop-set': KOP.set = el.getAttribute('data-set'); VIEWS.koppelen(); break;
+      case 'kop-start': case 'kop-again': kopStart(); VIEWS.koppelen(); window.scrollTo(0, 0); break;
+      case 'kop-check': KOP.checked = true; VIEWS.koppelen(); break;
+      case 'kop-stop': KOP.stage = 'setup'; VIEWS.koppelen(); window.scrollTo(0, 0); break;
+      case 'gat-check': GAT.checked = true; viewGat(GAT.casus); break;
+      case 'gat-leeg': GAT.place = {}; DND.sel = null; viewGat(GAT.casus); break;
+      case 'gat-opnieuw': GAT.key = null; viewGat(GAT.casus); window.scrollTo(0, 0); break;
       case 'reset': resetVraag = true; VIEWS.docent(); break;
       case 'reset-nee': resetVraag = false; VIEWS.docent(); break;
       case 'reset-ja':
         ['niveau', 'antw', 'zelf', 'kaart', 'best'].forEach(function (k) { try { localStorage.removeItem(PREFIX + k); } catch (err) { } });
-        S = { niveau: null, antw: {}, zelf: {}, kaart: {}, best: {} }; FK.stage = 'setup'; FK.mode = null; GAME = {}; resetVraag = false;
+        S = { niveau: null, antw: {}, zelf: {}, kaart: {}, best: {} }; FK.stage = 'setup'; FK.mode = null; GAME = {}; KOP.stage = 'setup'; GAT.key = null; resetVraag = false;
         location.hash = 'start'; route(false); break;
     }
   });

@@ -3,9 +3,11 @@
 Oefensite voor het examen maatschappijleer vmbo 2027. Leerlingen kiezen hun niveau (Basis, Kader of GL/TL) en oefenen met:
 
 - de vijf casussen van 2027, in de tekstversie van hun niveau, met voorlezen en uitleg bij moeilijke woorden;
+- per casus een achtergrondpagina per niveau, met gecontroleerde video's (YouTube, Schooltv, de Schatkamer van Beeld & Geluid) en bronnen, elk met een kritische noot en een kijkvraag;
 - per casus de analyse door vier brillen (de vier exameneenheden) en de bijbehorende begrippen;
 - R/T/I-vragen met modelantwoord en zelfcontrole;
 - de begrippenlijst (59 begrippen voor BB en KB, 62 voor GL/TL) met flitskaarten;
+- begrippen koppelen (slepen of tikken) en gatenteksten per casus;
 - twee games: *Feit of mening?* en *Welke bril?*
 
 ## Bestanden
@@ -15,7 +17,8 @@ Oefensite voor het examen maatschappijleer vmbo 2027. Leerlingen kiezen hun nive
 | `index.html` | De website |
 | `style.css` | De opmaak |
 | `app.js` | De werking (hoef je niet aan te passen) |
-| `inhoud.js` | Begrippen, moeilijke woorden, brillen, vragen en de uitspraken van de games |
+| `inhoud.js` | Begrippen, moeilijke woorden, brillen, vragen, gatenteksten en de uitspraken van de games |
+| `achtergrond.js` | Achtergrondtekst per niveau en de video's en bronnen per casus |
 | `teksten.js` | De casusteksten per niveau (`bb`, `kb`, `gt`) |
 
 Er is geen build-stap, server of database nodig: het zijn gewone bestanden.
@@ -37,7 +40,7 @@ Open `inhoud.js` of `teksten.js` op GitHub, klik op het potloodje, pas de tekst 
 
 ## Privacy
 
-Er is geen account en er wordt niets verstuurd. Niveau, antwoorden en voortgang blijven in de browser van de leerling. Wissen kan via *Voor de docent* onderaan de site.
+Er is geen account en er wordt niets verstuurd. YouTube-video's worden pas geladen als een leerling op *Video laden* klikt (via youtube-nocookie.com). Niveau, antwoorden en voortgang blijven in de browser van de leerling. Wissen kan via *Voor de docent* onderaan de site.
 
 ## Bronnen en controle
 

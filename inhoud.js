@@ -366,5 +366,49 @@ window.INHOUD = {
     { t: "In krantenkoppen heet Generatie Z lui.", a: "bs", c: 2, u: "De media maken een beeld van een hele groep: beeldvorming en stereotypering." },
     { t: "Het nieuws laat vooral jongeren zien die met een fatbike door rood rijden.", a: "bs", c: 5, u: "De media kiezen wat ze laten zien. Zo ontstaat een eenzijdig beeld van een groep: beeldvorming." },
     { t: "Veel kijkers geloven een TikTokker meer dan een arts.", a: "bs", c: 3, u: "Het gaat over hoe mensen hun beeld vormen via (sociale) media: beeldvorming." }
+  ],
+
+  /* ------------------------------------------------------------------ */
+  /* GATENTEKSTEN per casus. Een gat schrijf je als [[antwoord]].        */
+  /* Hoort het antwoord bij een begrip met een andere naam, schrijf dan  */
+  /* [[antwoord=begripnaam]], bijvoorbeeld [[kennis=machtsmiddelen]].    */
+  /* Afleiders zijn foute woorden in de woordbank: op Basis worden ze    */
+  /* niet getoond, op Kader twee, op GL/TL allemaal.                     */
+  /* ------------------------------------------------------------------ */
+  gatenteksten: [
+    { c: 1, n: ["bb", "kb"], afleiders: ["dictatuur", "richtlijn", "status"],
+      tekst: "Sinds 2020 geldt in Nederland een nieuwe [[wet]]: de Donorwet. Wie geen keuze maakt, staat in het Donorregister met 'geen bezwaar'. Mensen denken hier verschillend over, omdat ze andere [[waarden en normen]] hebben. Zelf beslissen over je lichaam is een individueel belang. Genoeg organen voor alle patiënten is een [[collectief belang=individuele/collectieve belangen]]. Op Urk laten mensen de keuze vaker aan de familie over. Wat je belangrijk vindt, leer je van je gezin en je geloof. Dat heet het [[socialisatieproces]]. Omdat het veel mensen raakt en er verschillende meningen over zijn, is dit een [[maatschappelijk probleem]].",
+      uitleg: "Een wet is verplicht en geldt voor iedereen. Waarden en normen verklaren waarom mensen er verschillend over denken. Het socialisatieproces laat zien waar je die waarden leert." },
+    { c: 1, n: ["gt"], afleiders: ["informele macht", "liberalisme", "stereotype", "dictatuur"],
+      tekst: "De Donorwet werd in 2016 in de Tweede Kamer aangenomen met 75 tegen 74 stemmen. Zo werkt besluitvorming in een [[parlementaire democratie]]: de meerderheid beslist. Veel Kamerleden uit de [[christendemocratie]] stemden tegen, omdat doneren volgens hen een bewuste gift moet zijn. De overheid gebruikt hier haar [[formele macht]]: zij stelt de regels vast. Tegelijk probeert ze mensen met [[voorlichting=overheidsbeleid]] over te halen om zelf een keuze te maken. Op Urk speelt het geloof een grote rol. Een gemeenschap met eigen waarden en normen binnen de samenleving noem je een [[subcultuur]].",
+      uitleg: "Let op het verschil tussen formele macht (vastgelegd in wetten) en informele macht (door bijvoorbeeld populariteit). Voorlichting is een vorm van overheidsbeleid zonder dwang." },
+
+    { c: 2, n: ["bb", "kb"], afleiders: ["mening", "actiegroep", "gezag"],
+      tekst: "Veel mensen denken dat Generatie Z lui is. Zo'n vast beeld over een hele groep heet een [[stereotype]]. Onderzoek onder 88.000 werknemers laat iets anders zien. Dat is een [[feit]]. Werkgevers willen kleine contracten, jongeren willen zekerheid. Ze hebben dus tegengestelde [[belangen]]. Het CNV komt op voor werknemers. Een vakbond is een [[belangengroep]]. De werkgever bepaalt hoeveel uur je mag werken. Hij heeft dus meer [[macht]].",
+      uitleg: "Een stereotype is een vast beeld over een groep. Een feit kun je controleren. Een vakbond komt langdurig op voor een groep: dat is een belangengroep, geen actiegroep." },
+    { c: 2, n: ["gt"], afleiders: ["sociale mobiliteit", "christendemocratie", "informele macht", "stereotype"],
+      tekst: "Het beeld dat jongeren lui zijn, wordt steeds herhaald in media en gesprekken. Zo ontstaat [[beeldvorming]]. Wie dat beeld al heeft, ziet vooral voorbeelden die erbij passen: [[selectieve waarneming]]. Zonder vast contract is het moeilijk om een huis te huren. Je [[maatschappelijke positie]] bepaalt dus je kansen. Vanuit het [[socialisme]] vindt men dat de overheid werknemers moet beschermen met regels. Vanuit het [[liberalisme]] moeten werkgevers en werknemers zelf afspraken maken. De Wet meer zekerheid flexwerkers schaft oproepcontracten af, maar maakt uitzonderingen voor scholieren en studenten. Een besluit waarbij beide kanten iets krijgen, heet een [[compromis]].",
+      uitleg: "Beeldvorming en selectieve waarneming horen bij elkaar: het beeld ontstaat, en daarna zie je vooral wat erbij past. Socialisme en liberalisme verschillen in hoeveel de overheid moet regelen." },
+
+    { c: 3, n: ["bb", "kb"], afleiders: ["imitatie", "wet", "massamedia"],
+      tekst: "Een influencer zegt: 'Zonnebrandcrème is slecht voor je.' Dat is een [[mening]] en geen feit. Artsen weten veel over de huid. Daardoor hebben ze [[gezag]]. Toch geloven veel jongeren de influencer. Ze willen op hun idool lijken. Dat heet [[identificatie]]. Influencers bereiken jongeren via [[sociale media]]. 'Huidkanker is de meest voorkomende vorm van kanker in Nederland.' Dat is een [[feit]], want je kunt het controleren.",
+      uitleg: "Bij identificatie wil je zijn zoals iemand die je bewondert. Bij imitatie doe je alleen gedrag na. Gezag is macht die mensen accepteren, bijvoorbeeld door kennis." },
+    { c: 3, n: ["gt"], afleiders: ["formele macht", "imitatie", "discriminatie", "subcultuur"],
+      tekst: "Een influencer met veel volgers heeft [[informele macht]]: die staat niet in regels, maar komt door populariteit. Een dermatoloog heeft [[gezag]] door kennis en functie. Op sociale media zie je vooral video's die passen bij wat je al bekijkt. Wie al twijfelt, gelooft zo'n video sneller. Dat heet [[selectieve waarneming]]. Vroeger was een lichte huid mooi, nu een bruine. Dat laat zien dat [[waarden en normen]] tijdgebonden zijn. De overheid kiest vooral voor voorlichting, omdat een verbod botst met de vrijheid van meningsuiting uit de [[grondwet]].",
+      uitleg: "Informele macht en gezag zijn verschillende vormen van macht. De vrijheid van meningsuiting is een grondrecht: daarom kan de overheid meningen niet zomaar verbieden." },
+
+    { c: 4, n: ["bb", "kb"], afleiders: ["geld", "dictatuur", "subcultuur"],
+      tekst: "Het kabinet geeft ouders een advies: geen sociale media onder de 15 jaar. Het is geen [[wet]], dus je krijgt geen straf. Thuis leren kinderen wat normaal is. Het [[gezin=socialiserende instituties]] is daarom een socialiserende institutie. Leren hoe je je hoort te gedragen, heet het [[socialisatieproces]]. Ruim 1400 artsen stuurden samen een brief. Ze gebruikten [[kennis=machtsmiddelen]] en [[aantal=machtsmiddelen]] als machtsmiddelen. Zo kwam het onderwerp op de [[politieke agenda]].",
+      uitleg: "Een advies of richtlijn is geen wet. Kennis en aantal zijn twee van de vijf machtsmiddelen: aantal, geweld, functie, kennis en geld." },
+    { c: 4, n: ["gt"], afleiders: ["socialisme", "dictatuur", "informele macht", "sociale mobiliteit"],
+      tekst: "Het kabinet kiest voor een richtlijn in plaats van een wet. Dat past bij het [[liberalisme]], waarin de overheid zich weinig met het gezin bemoeit. Een meerderheid van de Tweede Kamer wil smartphones op school weren. In een [[parlementaire democratie]] beslist de meerderheid. In 2026 steunde het kabinet een Europees voorstel voor een minimumleeftijd van 15 jaar, maar het maakt zich zorgen over privacy en [[grondrechten=grondwet]]. In Australië geldt al een wettelijke leeftijdsgrens. Zo zie je dat regels [[plaatsgebonden=tijd- en plaatsgebonden regels]] zijn. Als media steeds over 'schermverslaving' praten, beïnvloedt dat de [[beeldvorming]] over jongeren.",
+      uitleg: "Een richtlijn past bij een terughoudende overheid. Grondrechten staan in de Grondwet. Regels verschillen per land: ze zijn plaatsgebonden." },
+
+    { c: 5, n: ["bb", "kb"], afleiders: ["waarde", "gezag", "status"],
+      tekst: "Volgens de richtlijn moeten jongeren elke dag een uur bewegen. Zo'n regel over wat hoort, is een [[norm=waarden en normen]]. Jongeren uit gezinnen met weinig geld sporten minder. Dat komt door hun [[sociaal milieu]]. Zo ontstaan [[sociale verschillen=sociale verschillen/ongelijkheid]]. Het kabinet wil een helmplicht voor jongeren op e-bikes. Die komt in de [[wet]]. Een plan van de overheid om een probleem aan te pakken, heet [[overheidsbeleid]].",
+      uitleg: "Een norm is een regel over hoe je je hoort te gedragen. Een waarde is wat je belangrijk vindt, zoals gezondheid. Sociaal milieu is een oorzaak van sociale verschillen." },
+    { c: 5, n: ["gt"], afleiders: ["positieve actie", "vooroordelen", "informele macht", "emancipatie"],
+      tekst: "Het kabinet wil met een helmplicht het aantal ernstige ongelukken verminderen. Dat is [[overheidsbeleid]]. Jongeren die al weinig bewegen, kiezen vaker voor een fatbike. Zo kan de fatbike de [[sociale ongelijkheid=sociale verschillen/ongelijkheid]] vergroten. Geld voor de contributie van een sportclub helpt jongeren uit gezinnen met een laag inkomen. Zo'n bijdrage van de overheid heet een [[subsidie=overheidsbeleid]]. Al sinds de jaren zeventig moeten bromfietsers een helm dragen. Regels zijn dus [[tijdgebonden=tijd- en plaatsgebonden regels]]. Volgens onderzoekers wordt vaak gezegd wat jongeren fout doen. Zo'n vast, negatief beeld van een hele groep is een [[stereotype]].",
+      uitleg: "Subsidie en voorlichting zijn voorbeelden van overheidsbeleid tegen sociale ongelijkheid. Positieve actie is iets anders: voorrang bij gelijke geschiktheid." }
   ]
 };
