@@ -23,6 +23,40 @@
   function niv() { return D.niveaus[S.niveau] ? S.niveau : 'kb'; }
   function N() { return D.niveaus[niv()]; }
 
+  /* ---------- Leeshulp (weergave-instellingen, alleen op dit apparaat) ---------- */
+  var WG_STD = { tekst: 'normaal', letter: 'standaard', ruimte: false, liniaal: false, thema: 'auto', contrast: false, rustig: false, tempo: 'normaal' };
+  var WG = Object.assign({}, WG_STD, sget('weergave', {}));
+  function pasWeergaveToe() {
+    var r = document.documentElement, cl = r.classList;
+    cl.toggle('fs-1', WG.tekst === 'groot'); cl.toggle('fs-2', WG.tekst === 'extra');
+    cl.toggle('lexend', WG.letter === 'lexend'); cl.toggle('ruim', !!WG.ruimte);
+    cl.toggle('contrast', !!WG.contrast); cl.toggle('rustig', !!WG.rustig || !!WG.contrast);
+    if (WG.thema === 'licht') r.setAttribute('data-theme', 'light');
+    else if (WG.thema === 'donker') r.setAttribute('data-theme', 'dark');
+    else r.removeAttribute('data-theme');
+    var l = document.getElementById('liniaal'); if (l) l.hidden = !WG.liniaal;
+  }
+  pasWeergaveToe();
+  var LH = [
+    { k: 'tekst', label: 'Tekstgrootte', opts: [['normaal', 'Normaal'], ['groot', 'Groot'], ['extra', 'Extra groot']] },
+    { k: 'letter', label: 'Lettertype', opts: [['standaard', 'Standaard'], ['lexend', 'Lexend (rustige letters)']] },
+    { k: 'ruimte', label: 'Ruimte tussen letters en regels', uitleg: 'Extra ruimte helpt veel lezers, bijvoorbeeld bij dyslexie.', opts: [[false, 'Normaal'], [true, 'Extra ruimte']] },
+    { k: 'liniaal', label: 'Leesliniaal', uitleg: 'Een gele balk volgt je muis of vinger, zodat je makkelijker in de regel blijft.', opts: [[false, 'Uit'], [true, 'Aan']] },
+    { k: 'thema', label: 'Licht of donker', opts: [['auto', 'Zoals mijn apparaat'], ['licht', 'Licht'], ['donker', 'Donker']] },
+    { k: 'contrast', label: 'Contrast', opts: [[false, 'Normaal'], [true, 'Hoog contrast']] },
+    { k: 'rustig', label: 'Kleuren en effecten', uitleg: 'Zet kleurverlopen en gloed uit als die je afleiden.', opts: [[false, 'Met kleurverlopen'], [true, 'Rustige weergave']] },
+    { k: 'tempo', label: 'Voorleessnelheid', spraak: true, opts: [['langzaam', 'Langzaam'], ['normaal', 'Normaal'], ['snel', 'Snel']] }
+  ];
+  function lhHTML() {
+    var spreken = ('speechSynthesis' in window);
+    return '<div class="lh-grid">' + LH.filter(function (r) { return !r.spraak || spreken; }).map(function (r) {
+      return '<div class="lh-row"><p class="lbl" id="lh-' + r.k + '">' + esc(r.label) + '</p>' + (r.uitleg ? '<p class="small muted">' + esc(r.uitleg) + '</p>' : '') +
+        '<div class="lh-opts" role="group" aria-labelledby="lh-' + r.k + '">' + r.opts.map(function (o) {
+          return '<button type="button" class="lh-opt" data-act="lh" data-k="' + r.k + '" data-v="' + String(o[0]) + '" aria-pressed="' + (WG[r.k] === o[0]) + '">' + esc(o[1]) + '</button>';
+        }).join('') + '</div></div>';
+    }).join('') + '<div class="row"><button type="button" class="btn ghost" data-act="lh-reset">Standaard herstellen</button></div></div>';
+  }
+
   /* ---------- Gegevens ---------- */
   var BRIL = D.brillen, CASUS = D.casussen, BMAP = {};
   D.begrippen.forEach(function (b) { BMAP[b.n] = b; });
@@ -64,9 +98,9 @@
   var VIEWS = {}, NAVOF = { flitskaarten: 'oefenen', 'feit-of-mening': 'oefenen', 'welke-bril': 'oefenen', koppelen: 'oefenen', gatentekst: 'oefenen', docent: '' };
   function huidigeHash() { var h = (location.hash || '').slice(1); try { h = decodeURIComponent(h); } catch (e) { } return h || 'start'; }
   function route(keepScroll) {
-    stopSpeech(); hideTip(); DND.actief = null; DND.sel = null;
+    stopSpeech(); hideTip(); DND.actief = null; DND.sel = null; document.body.removeAttribute('data-print');
     var h = huidigeHash(), nav = 'start';
-    var m = /^casus-(\d+)(?:-(lezen|achtergrond|brillen|vragen))?$/.exec(h);
+    var m = /^casus-(\d+)(?:-(lezen|achtergrond|brillen|vragen|samenvatting))?$/.exec(h);
     var mk = /^koppelen-([a-z0-9]+)$/.exec(h), mg = /^gatentekst-(\d+)$/.exec(h);
     if (m && CASUS[+m[1] - 1]) { viewCasus(CASUS[+m[1] - 1], m[2] || 'lezen'); nav = 'casussen'; }
     else if (mk) { KOP.set = mk[1]; kopStart(); VIEWS.koppelen(); nav = 'oefenen'; }
@@ -281,14 +315,50 @@
     return '<div class="qsum" id="qsum">' + qsumHTML(stats(c)) + '</div>' +
       '<p class="muted small">Schrijf je antwoord op of zeg het hardop. Bekijk daarna het modelantwoord en geef aan hoe het ging. Je antwoorden worden alleen op dit apparaat bewaard.</p>' +
       '<div class="qlist">' + qs.map(function (q) { return qCard(c, q); }).join('') + '</div>' +
-      '<section class="tipbox"><h3>Oefen verder met deze casus</h3><div class="row"><a class="btn" href="#gatentekst-' + c.nr + '">Gatentekst</a><a class="btn ghost" href="#koppelen-c' + c.nr + '">Begrippen koppelen</a><a class="btn ghost" href="#flitskaarten">Flitskaarten</a></div></section>';
+      '<section class="tipbox"><h3>Oefen verder met deze casus</h3><div class="row"><a class="btn" href="#gatentekst-' + c.nr + '">Gatentekst</a><a class="btn ghost" href="#koppelen-c' + c.nr + '">Begrippen koppelen</a><a class="btn ghost" href="#flitskaarten">Flitskaarten</a><a class="btn ghost" href="#casus-' + c.nr + '-samenvatting">Samenvattingskaart</a></div></section>';
+  }
+
+  /* ---------- Samenvattingskaart ---------- */
+  function eersteZin(t) {
+    var m = /^(.*?[.!?])(\s|$)/.exec(t);
+    if (!m) return t;
+    if (m[1].length < 25) { var m2 = /^(.*?[.!?]\s.*?[.!?])(\s|$)/.exec(t); return m2 ? m2[1] : t; }
+    return m[1];
+  }
+  function kaartBegrippen(c) {
+    var lijst = [], max = { bb: 6, kb: 8, gt: 10 }[niv()];
+    [c.hoofd].concat(KEYS.filter(function (k) { return k !== c.hoofd; })).forEach(function (k) {
+      (c.brillen[k].b || []).forEach(function (n) { if (lijst.indexOf(n) < 0 && BMAP[n] && inNiv(BMAP[n])) lijst.push(n); });
+    });
+    return lijst.slice(0, max);
+  }
+  function tabSamenvatting(c) {
+    var feiten = vragen(c).filter(function (q) { return q.t === 'R'; }).map(function (q) { return q.a; });
+    var mid = 'mening-' + c.nr, mening = S.antw[mid] || '';
+    return '<p class="muted noprint" style="max-width:72ch">Alles over deze casus op één kaart. Vul je eigen mening in en print de kaart, of bewaar hem als PDF. Let op: bij het mondeling mag je geen aantekeningen gebruiken. Deze kaart is om thuis mee te leren.</p>' +
+      '<article class="kaart"><header class="k-head"><div><p class="eyebrow">Samenvattingskaart · casus ' + c.nr + ' · niveau ' + esc(N().naam) + '</p><h2>' + esc(c.titel) + '</h2></div><span class="k-logo">Casuscoach ✦</span></header>' +
+      '<section class="k-blok"><h3>Het maatschappelijke probleem</h3><p>' + esc(c.probleem) + '</p></section>' +
+      (feiten.length ? '<section class="k-blok"><h3>Belangrijke feiten</h3><ul>' + feiten.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul></section>' : '') +
+      '<section class="k-blok"><h3>Vier brillen</h3><div class="k-brillen">' + KEYS.map(function (k) {
+        var bs = (c.brillen[k].b || []).filter(function (n) { return BMAP[n] && inNiv(BMAP[n]); }).slice(0, 4);
+        return '<div class="k-bril ' + k + '"><b>' + esc(BRIL[k].naam) + (k === c.hoofd ? ' · sterkste bril' : '') + '</b><span>' + esc(eersteZin(c.brillen[k].t)) + '</span>' +
+          (bs.length ? '<span class="kb">' + esc(bs.join(' · ')) + '</span>' : '') + '</div>';
+      }).join('') + '</div></section>' +
+      '<section class="k-blok"><h3>Begrippen om te kennen</h3><dl class="k-begr">' + kaartBegrippen(c).map(function (n) {
+        return '<dt>' + esc(n) + '</dt><dd>' + esc(eersteZin(BMAP[n].d)) + '</dd>';
+      }).join('') + '</dl></section>' +
+      '<section class="k-blok"><h3>Mijn mening</h3><p class="small muted">Mijn standpunt, met twee argumenten.</p><label class="sr" for="a-' + mid + '">Mijn mening</label>' +
+      '<textarea id="a-' + mid + '" data-antw="' + mid + '" rows="4" placeholder="Ik vind dat … omdat … Een tweede argument is …">' + esc(mening) + '</textarea>' +
+      '<div class="k-print" data-mirror="' + mid + '">' + esc(mening) + '</div></section>' +
+      '<footer class="k-foot">Bron: ' + esc(c.bron.medium) + ' · casustekst: CvTE, vakinformatie staatsexamen ' + D.jaar + ' · gemaakt met Casuscoach</footer></article>' +
+      '<div class="row noprint"><button type="button" class="btn" data-act="print">Print of bewaar als PDF</button></div>';
   }
 
   var huidigeCasus = null;
   function viewCasus(c, tab) {
     huidigeCasus = c;
     var s = stats(c);
-    var tabs = [['lezen', 'Lezen'], ['achtergrond', 'Achtergrond'], ['brillen', 'Vier brillen'], ['vragen', 'Vragen']];
+    var tabs = [['lezen', 'Lezen'], ['achtergrond', 'Achtergrond'], ['brillen', 'Vier brillen'], ['vragen', 'Vragen'], ['samenvatting', 'Samenvatting']];
     var h = '<div class="view"><div class="crumbs"><a href="#casussen">← Alle casussen</a></div>' +
       '<header class="chead"><p class="eyebrow">Casus ' + c.nr + ' · bron: ' + esc(c.bron.medium) + '</p><h1>' + esc(c.titel) + '</h1></header>' +
       '<nav class="ctabs" aria-label="Onderdelen van casus ' + c.nr + '">' + tabs.map(function (t) {
@@ -296,12 +366,13 @@
         return '<a class="ctab' + (on ? ' on' : '') + '" href="#casus-' + c.nr + '-' + t[0] + '"' + (on ? ' aria-current="page"' : '') + '>' + t[1] +
           (t[0] === 'vragen' ? ' <span class="cnt" id="tabcnt">' + s.goed + '/' + s.tot + '</span>' : '') + '</a>';
       }).join('') + '</nav>';
-    h += tab === 'achtergrond' ? tabAchtergrond(c) : tab === 'brillen' ? tabBrillen(c) : tab === 'vragen' ? tabVragen(c) : tabLezen(c);
+    h += tab === 'achtergrond' ? tabAchtergrond(c) : tab === 'brillen' ? tabBrillen(c) : tab === 'vragen' ? tabVragen(c) : tab === 'samenvatting' ? tabSamenvatting(c) : tabLezen(c);
     var prev = CASUS[c.nr - 2], next = CASUS[c.nr];
     h += '<nav class="pager" aria-label="Andere casussen">' + (prev ? '<a href="#casus-' + prev.nr + '">← Casus ' + prev.nr + ': ' + esc(prev.kort) + '</a>' : '<span></span>') +
       (next ? '<a href="#casus-' + next.nr + '">Casus ' + next.nr + ': ' + esc(next.kort) + ' →</a>' : '') + '</nav></div>';
     app.innerHTML = h;
     document.title = 'Casus ' + c.nr + ' · Casuscoach';
+    if (tab === 'samenvatting') document.body.setAttribute('data-print', 'kaart');
   }
 
   /* ---------- Voorlezen ---------- */
@@ -315,7 +386,7 @@
     var synth = window.speechSynthesis; synth.cancel();
     var stem = (synth.getVoices() || []).filter(function (v) { return /^nl([-_]|$)/i.test(v.lang); })[0];
     leesTekst.forEach(function (t, i) {
-      var u = new SpeechSynthesisUtterance(t); u.lang = 'nl-NL'; u.rate = 0.95; if (stem) u.voice = stem;
+      var u = new SpeechSynthesisUtterance(t); u.lang = 'nl-NL'; u.rate = ({ langzaam: 0.75, normaal: 0.95, snel: 1.15 })[WG.tempo] || 0.95; if (stem) u.voice = stem;
       if (i === leesTekst.length - 1) u.onend = function () { stopSpeech(); };
       synth.speak(u);
     });
@@ -366,6 +437,15 @@
   function sluitDlg() { if (dlg.open) { if (typeof dlg.close === 'function') dlg.close(); else dlg.removeAttribute('open'); } }
   $('#dlgClose').addEventListener('click', sluitDlg);
   dlg.addEventListener('click', function (e) { if (e.target === dlg) sluitDlg(); });
+
+  var lhDlg = $('#lh');
+  function sluitLh() { if (lhDlg.open) { if (typeof lhDlg.close === 'function') lhDlg.close(); else lhDlg.removeAttribute('open'); } }
+  $('#lhClose').addEventListener('click', sluitLh);
+  lhDlg.addEventListener('click', function (e) { if (e.target === lhDlg) sluitLh(); });
+  function liniaalNaar(y) { var l = document.getElementById('liniaal'); if (!l || l.hidden) return; l.style.top = (y - l.offsetHeight / 2) + 'px'; }
+  document.addEventListener('pointermove', function (e) { if (WG.liniaal) liniaalNaar(e.clientY); }, { passive: true });
+  document.addEventListener('touchmove', function (e) { if (WG.liniaal && e.touches[0]) liniaalNaar(e.touches[0].clientY); }, { passive: true });
+  document.addEventListener('touchstart', function (e) { if (WG.liniaal && e.touches[0]) liniaalNaar(e.touches[0].clientY); }, { passive: true });
 
   /* ---------- Woord-uitleg ---------- */
   var tip = $('#tip');
@@ -683,7 +763,7 @@
       '<h2>Waar komt de inhoud vandaan?</h2><ul><li>De casusteksten per niveau komen uit de vakinformatie staatsexamen ' + D.jaar + ' van het College voor Toetsen en Examens (BB, KB en GL-TL).</li>' +
       '<li>De begrippen volgen de begrippenlijst uit dezelfde vakinformatie: 59 voor BB en KB, 62 voor GL/TL.</li>' +
       '<li>De uitleg van begrippen, de analyses per bril, de vragen en de modelantwoorden zijn een eerste versie. Controleer ze met je eigen lesmethode voordat leerlingen ermee werken.</li></ul>' +
-      '<h2>Privacy</h2><p>Er is geen account en er wordt niets verstuurd. Niveau, antwoorden en voortgang worden alleen in de browser van de leerling bewaard. Op een gedeelde computer kan een leerling dat hieronder wissen. YouTube-video\'s worden pas geladen als een leerling op <em>Video laden</em> klikt; ze komen via youtube-nocookie.com.</p>' +
+      '<h2>Privacy</h2><p>Er is geen account en er wordt niets verstuurd. Niveau, antwoorden en voortgang worden alleen in de browser van de leerling bewaard. Op een gedeelde computer kan een leerling dat hieronder wissen. YouTube-video\'s worden pas geladen als een leerling op <em>Video laden</em> klikt; ze komen via youtube-nocookie.com. Ook de instellingen van de Leeshulp blijven op het apparaat.</p>' +
       '<h2>Inhoud aanpassen</h2><ul><li><code>teksten.js</code>: de casusteksten per niveau. Elke regel is een alinea.</li>' +
       '<li><code>inhoud.js</code>: begrippen, moeilijke woorden, brillen, vragen, gatenteksten en de uitspraken van de games.</li>' +
       '<li><code>achtergrond.js</code>: de achtergrondtekst per niveau en de video\'s en bronnen per casus.</li>' +
@@ -781,6 +861,16 @@
       case 'gat-check': GAT.checked = true; viewGat(GAT.casus); break;
       case 'gat-leeg': GAT.place = {}; DND.sel = null; viewGat(GAT.casus); break;
       case 'gat-opnieuw': GAT.key = null; viewGat(GAT.casus); window.scrollTo(0, 0); break;
+      case 'lh-open': $('#lhBody').innerHTML = lhHTML(); if (typeof lhDlg.showModal === 'function') { if (!lhDlg.open) lhDlg.showModal(); } else lhDlg.setAttribute('open', ''); break;
+      case 'lh': {
+        var k = el.getAttribute('data-k'), v = el.getAttribute('data-v');
+        WG[k] = v === 'true' ? true : v === 'false' ? false : v;
+        sset('weergave', WG); pasWeergaveToe(); $('#lhBody').innerHTML = lhHTML();
+        var terug = $('#lhBody [data-k="' + k + '"][data-v="' + v + '"]'); if (terug) terug.focus();
+        break;
+      }
+      case 'lh-reset': WG = Object.assign({}, WG_STD); sset('weergave', WG); pasWeergaveToe(); $('#lhBody').innerHTML = lhHTML(); break;
+      case 'print': window.print(); break;
       case 'reset': resetVraag = true; VIEWS.docent(); break;
       case 'reset-nee': resetVraag = false; VIEWS.docent(); break;
       case 'reset-ja':
@@ -795,6 +885,7 @@
     var t = e.target;
     if (t.matches && t.matches('[data-antw]')) {
       S.antw[t.getAttribute('data-antw')] = t.value;
+      var mir = document.querySelector('[data-mirror="' + t.getAttribute('data-antw') + '"]'); if (mir) mir.textContent = t.value;
       clearTimeout(bewaarTimer); bewaarTimer = setTimeout(function () { sset('antw', S.antw); }, 400);
     } else if (t.id === 'bankSearch') {
       bank.query = t.value.trim().toLowerCase();

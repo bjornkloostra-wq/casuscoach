@@ -7,7 +7,7 @@
 <meta name="description" content="Oefen voor het examen maatschappijleer vmbo 2027: de vijf casussen, alle begrippen en games, op niveau Basis, Kader of GL/TL.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Lexend:wght@400;600&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,7 +18,8 @@
   <div class="wrap">
     <a class="brand" href="#start" aria-label="Casuscoach, naar de startpagina">
       <svg class="glasses" viewBox="0 0 32 16" width="28" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="8" cy="9" r="5.4"/><circle cx="24" cy="9" r="5.4"/><path d="M13.4 8.4c1.6-1.3 3.6-1.3 5.2 0M2.6 8 1 5M29.4 8 31 5"/></svg>
-      <span>Casuscoach</span>
+      <span class="naam">Casuscoach</span>
+      <svg class="sparkle" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z" fill="currentColor"/></svg>
     </a>
     <nav class="topnav" aria-label="Hoofdmenu">
       <a href="#start" data-nav="start">Start</a>
@@ -34,6 +35,7 @@
         <button type="button" data-setniv="gt" aria-pressed="false">GL/TL</button>
       </div>
     </div>
+    <button type="button" class="lh-btn" data-act="lh-open" aria-label="Leeshulp: tekstgrootte, lettertype, contrast en meer" title="Leeshulp">Aa</button>
   </div>
 </header>
 
@@ -63,6 +65,14 @@
   </div>
 </dialog>
 <div id="tip" role="tooltip" hidden></div>
+<div id="liniaal" aria-hidden="true" hidden></div>
+<dialog id="lh" aria-labelledby="lhTitle">
+  <div class="dlg-inner">
+    <button type="button" class="dlg-x" id="lhClose" aria-label="Sluiten">×</button>
+    <div class="dlg-head"><h2 id="lhTitle">Leeshulp</h2><p class="small muted">Stel de site in zoals jij het prettigst leest. Dit wordt alleen op dit apparaat bewaard.</p></div>
+    <div id="lhBody"></div>
+  </div>
+</dialog>
 
 <script src="teksten.js"></script>
 <script src="inhoud.js"></script>

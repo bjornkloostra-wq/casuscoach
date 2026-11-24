@@ -334,3 +334,123 @@ aside.nieuws p{font-size:1rem}
 .fixw{font-size:.88rem;color:var(--good);font-weight:700;margin-left:4px;white-space:nowrap}
 
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+
+/* ================================================================
+   AI-STIJL: kleurverlopen, glas en gloed.
+   Leerlingen zetten dit uit via Leeshulp → Rustige weergave (class "rustig").
+   ================================================================ */
+:root{
+  --ai1:#7C3AED; --ai2:#4F46E5; --ai3:#0891B2;
+  --grad:linear-gradient(120deg,var(--ai1) 0%,var(--ai2) 50%,var(--ai3) 100%);
+  --btn-grad:linear-gradient(120deg,#6D28D9 0%,#4338CA 55%,#0E7490 100%);
+  --grad-soft:linear-gradient(120deg,rgba(124,58,237,.09),rgba(8,145,178,.09));
+  --glass:rgba(255,255,255,.74); --glow:0 10px 32px rgba(79,70,229,.13); --glow-strong:0 14px 42px rgba(124,58,237,.26);
+  --aurora1:rgba(124,58,237,.15); --aurora2:rgba(8,145,178,.12); --aurora3:rgba(236,72,153,.07);
+  --focus:#7C3AED; --link:#5B3FD9;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ai1:#C4B5FD; --ai2:#A5B4FC; --ai3:#67E8F9;
+    --glass:rgba(20,23,41,.74); --glow:0 10px 32px rgba(0,0,0,.45); --glow-strong:0 14px 42px rgba(124,58,237,.38);
+    --aurora1:rgba(139,92,246,.20); --aurora2:rgba(34,211,238,.10); --aurora3:rgba(236,72,153,.08);
+    --focus:#C4B5FD; --link:#C4B5FD; --paper:#0B0D18; --surface:#141729; --sunk:#1C2036; --line:#2A2F4A;
+  }
+}
+:root[data-theme="dark"]{
+  --ai1:#C4B5FD; --ai2:#A5B4FC; --ai3:#67E8F9;
+  --glass:rgba(20,23,41,.74); --glow:0 10px 32px rgba(0,0,0,.45); --glow-strong:0 14px 42px rgba(124,58,237,.38);
+  --aurora1:rgba(139,92,246,.20); --aurora2:rgba(34,211,238,.10); --aurora3:rgba(236,72,153,.08);
+  --focus:#C4B5FD; --link:#C4B5FD; --paper:#0B0D18; --surface:#141729; --sunk:#1C2036; --line:#2A2F4A;
+}
+html:not(.rustig) body{background:radial-gradient(70rem 36rem at -5% -10%,var(--aurora1),transparent 60%),radial-gradient(60rem 34rem at 105% -5%,var(--aurora2),transparent 60%),radial-gradient(50rem 30rem at 50% 110%,var(--aurora3),transparent 60%),var(--paper);background-attachment:fixed}
+html:not(.rustig) .topbar,html:not(.rustig) .bottomnav{background:var(--glass);-webkit-backdrop-filter:saturate(160%) blur(16px);backdrop-filter:saturate(160%) blur(16px)}
+html:not(.rustig) h1,html:not(.rustig) .brand .naam,html:not(.rustig) .hello .eyebrow{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+html:not(.rustig) .hello .eyebrow::before{content:"✦ "}
+.brand .sparkle{color:var(--ai1);margin-left:-4px;align-self:flex-start}
+html:not(.rustig) .btn:not(.ghost):not(.good):not(.bad){background:var(--btn-grad);border-color:transparent;color:#FFFFFF;box-shadow:var(--glow)}
+html:not(.rustig) .btn:not(.ghost):not(.good):not(.bad):hover{box-shadow:var(--glow-strong)}
+html:not(.rustig) .seg button[aria-pressed="true"],html:not(.rustig) .dchip[aria-pressed="true"]{background:var(--btn-grad);border-color:transparent;color:#FFFFFF}
+html:not(.rustig) .bar>span{background:var(--grad)}
+html:not(.rustig) :is(.ccard,.panel,.ocard,.glink,.reader,.qcard,.mcard,.sidebox,.group,.examstrip,.probleem,.fkcard,.endcard,.nivcard,.kaart,.pair,.qsum){border-radius:20px;box-shadow:var(--glow)}
+html:not(.rustig) :is(.ccard,.ocard,.glink,.nivcard):hover{border-color:transparent;background:linear-gradient(var(--surface),var(--surface)) padding-box,var(--grad) border-box;box-shadow:var(--glow-strong)}
+html:not(.rustig) .ctab.on{border-bottom-color:transparent;background:var(--grad) bottom/100% 3px no-repeat}
+html:not(.rustig) :is(.tipbox,aside.nieuws){background:var(--grad-soft);border:1px solid rgba(124,58,237,.22)}
+html:not(.rustig) .bottomnav a[aria-current="page"] svg{background:var(--grad-soft)}
+
+/* ---------- Leeshulp ---------- */
+html.fs-1{font-size:112.5%}
+html.fs-2{font-size:125%}
+html.lexend{--f-body:"Lexend","Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif}
+html.ruim body{letter-spacing:.035em;word-spacing:.12em}
+html.ruim :is(p,li,dd,.lead){line-height:1.95}
+html.contrast{--paper:#FFFFFF;--surface:#FFFFFF;--sunk:#EDEDED;--ink:#000000;--muted:#222222;--line:#000000;--link:#0033CC;--focus:#0033CC;--btn:#000000;--btn-ink:#FFFFFF;--hl:#FFF3A0;--word:#FFF3A0}
+@media (prefers-color-scheme: dark){
+  html.contrast:not([data-theme="light"]){--paper:#000000;--surface:#000000;--sunk:#1A1A1A;--ink:#FFFFFF;--muted:#E6E6E6;--line:#FFFFFF;--link:#9DB8FF;--focus:#FFD400;--btn:#FFFFFF;--btn-ink:#000000;--hl:#332B00;--word:#332B00}
+}
+html.contrast[data-theme="dark"]{--paper:#000000;--surface:#000000;--sunk:#1A1A1A;--ink:#FFFFFF;--muted:#E6E6E6;--line:#FFFFFF;--link:#9DB8FF;--focus:#FFD400;--btn:#FFFFFF;--btn-ink:#000000;--hl:#332B00;--word:#332B00}
+html.contrast a{text-decoration:underline}
+html.contrast :is(.ccard,.panel,.ocard,.glink,.reader,.qcard,.mcard,.sidebox,.group,.probleem,.fkcard,.chip,.dzone,.pair){border-width:2px;border-color:var(--line)}
+#liniaal{position:fixed;left:0;right:0;top:-100px;height:2.6em;pointer-events:none;z-index:45;background:rgba(255,214,64,.28);border-top:2px solid rgba(230,170,0,.7);border-bottom:2px solid rgba(230,170,0,.7)}
+.lh-btn{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-family:var(--f-display);font-weight:800;font-size:1.05rem;min-width:44px;height:40px;border-radius:12px;cursor:pointer}
+html:not(.rustig) .lh-btn{border-color:transparent;background:linear-gradient(var(--surface),var(--surface)) padding-box,var(--grad) border-box}
+dialog#lh{border:0;border-radius:18px;max-width:560px;width:calc(100% - 32px);background:var(--surface);color:var(--ink);padding:0;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+dialog#lh::backdrop{background:rgba(8,12,20,.55)}
+.lh-grid{display:flex;flex-direction:column;gap:18px}
+.lh-row{display:flex;flex-direction:column;gap:6px}
+.lh-opts{display:flex;flex-wrap:wrap;gap:6px}
+.lh-opt{border:2px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:.95rem;font-weight:700;padding:8px 12px;border-radius:12px;cursor:pointer;min-height:42px}
+.lh-opt[aria-pressed="true"]{border-color:var(--ink);background:var(--sunk)}
+@media (max-width:430px){.brand .naam,.brand .sparkle{display:none}.topbar .wrap{gap:10px}}
+
+/* ---------- Samenvattingskaart ---------- */
+.kaart{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:clamp(16px,4vw,28px);display:flex;flex-direction:column;gap:16px;max-width:900px}
+.k-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;border-bottom:2px solid var(--ink);padding-bottom:12px}
+.k-head>div{min-width:0}
+.k-head h2{font-size:clamp(1.2rem,3vw,1.6rem);margin-top:4px}
+.k-logo{font-family:var(--f-display);font-weight:800;white-space:nowrap;color:var(--ai1)}
+.k-blok{display:flex;flex-direction:column;gap:6px}
+.k-blok h3{font-size:1.02rem}
+.k-blok ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.k-brillen{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.k-bril{background:var(--x-tint);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.k-bril b{color:var(--x);font-family:var(--f-display)}
+.k-bril .kb{font-size:.86rem;color:var(--muted)}
+.k-begr{display:grid;grid-template-columns:minmax(0,13rem) minmax(0,1fr);gap:6px 16px;margin:0}
+.k-begr dt{font-weight:700}
+.k-begr dd{margin:0;color:var(--muted)}
+.k-print{display:none}
+.k-foot{font-size:.82rem;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+@media (max-width:640px){.k-brillen{grid-template-columns:1fr}.k-begr{grid-template-columns:1fr;gap:2px}.k-begr dd{margin-bottom:8px}.k-logo{display:none}}
+
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#FFFFFF!important;color:#000000;font-size:10pt}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-shadow:none!important}
+  .topbar,.bottomnav,.footer,.skip,#liniaal,#tip,.noprint,dialog{display:none!important}
+  body[data-print="kaart"] .view>*:not(.kaart){display:none!important}
+  main{padding:0!important}
+  .kaart{border:1px solid #888888;border-radius:8px;padding:14px;max-width:none;gap:10px;color:#000000;background:#FFFFFF}
+  .kaart :is(h1,h2,h3,.eyebrow,p,li,dt,dd,span,b){color:#000000!important;-webkit-text-fill-color:#000000!important;background:none}
+  .kaart .k-bril{background:#F3F4F6!important;border:1px solid #CCCCCC}
+  .kaart .k-head{border-bottom-color:#000000}
+  .kaart textarea{display:none}
+  .kaart .k-print{display:block;min-height:6.4em;white-space:pre-wrap;line-height:1.6em;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(1.6em - 1px),#BBBBBB calc(1.6em - 1px),#BBBBBB 1.6em)}
+  .k-brillen{grid-template-columns:1fr 1fr}
+  .k-begr{grid-template-columns:12rem 1fr}
+  .kaart section,.k-bril{break-inside:avoid}
+  .k-logo{display:inline}
+}
+@media print{
+  html,body{font-size:9.5pt}
+  .kaart{gap:7px;padding:10px 12px}
+  .kaart :is(p,li,dt,dd,span){line-height:1.38}
+  .k-blok{gap:3px}
+  .k-blok ul{gap:1px}
+  .k-head{padding-bottom:6px}
+  .k-head h2{font-size:1.35rem}
+  .k-brillen{gap:6px}
+  .k-bril{padding:6px 9px;gap:2px}
+  .k-begr{gap:1px 12px}
+  .kaart .k-print{min-height:4.8em}
+  .k-foot{padding-top:4px}
+}

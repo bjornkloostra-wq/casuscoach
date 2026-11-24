@@ -9,6 +9,8 @@ Oefensite voor het examen maatschappijleer vmbo 2027. Leerlingen kiezen hun nive
 - de begrippenlijst (59 begrippen voor BB en KB, 62 voor GL/TL) met flitskaarten;
 - begrippen koppelen (slepen of tikken) en gatenteksten per casus;
 - twee games: *Feit of mening?* en *Welke bril?*
+- per casus een samenvattingskaart die op één A4 past (printen of bewaren als PDF);
+- Leeshulp: tekstgrootte, lettertype Lexend, extra letter- en regelruimte, leesliniaal, licht/donker, hoog contrast, rustige weergave en voorleessnelheid.
 
 ## Bestanden
 
