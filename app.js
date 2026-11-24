@@ -239,7 +239,7 @@
     var href = m.type === 'youtube' ? 'https://www.youtube.com/watch?v=' + m.id : m.url;
     var label = m.type === 'youtube' ? 'Open op YouTube' : m.type === 'schatkamer' ? 'Bekijk in de Schatkamer' : schooltv ? 'Bekijk bij Schooltv' : 'Lees bij ' + m.maker;
     var top = m.type === 'youtube'
-      ? '<div class="vid" id="vid-' + esc(m.id) + '"><button type="button" class="vidbtn" data-act="yt" data-id="' + esc(m.id) + '" data-titel="' + esc(m.titel) + '">' + PLAY + '<span>Video laden</span><small>Pas na deze klik maakt de site verbinding met YouTube.</small></button></div>'
+      ? '<a class="vid vidlink" href="' + esc(href) + '" target="_blank" rel="noopener noreferrer">' + PLAY + '<span>Bekijk op YouTube</span><small>De video opent in een nieuw tabblad, bij YouTube zelf.</small></a>'
       : '<div class="mstrip ' + (m.type === 'schatkamer' ? 'sv' : schooltv ? 'cs' : 'alg') + '">' + (m.type === 'schatkamer' ? 'Archiefbeeld · De Schatkamer van Beeld & Geluid' : schooltv ? 'Video · Schooltv' : 'Artikel of webpagina') + '</div>';
     return '<article class="mcard">' + top + '<div class="mbody"><div class="mtags"><span class="pill ' + (SOORTKLEUR[m.soort] || 'alg') + '">' + esc(m.soort) + '</span><span class="small muted">' + esc(meta) + '</span></div>' +
       '<h3>' + esc(m.titel) + '</h3><p class="small"><strong>Waarom deze bron?</strong> ' + esc(m.waarom) + '</p>' +
@@ -763,7 +763,7 @@
       '<h2>Waar komt de inhoud vandaan?</h2><ul><li>De casusteksten per niveau komen uit de vakinformatie staatsexamen ' + D.jaar + ' van het College voor Toetsen en Examens (BB, KB en GL-TL).</li>' +
       '<li>De begrippen volgen de begrippenlijst uit dezelfde vakinformatie: 59 voor BB en KB, 62 voor GL/TL.</li>' +
       '<li>De uitleg van begrippen, de analyses per bril, de vragen en de modelantwoorden zijn een eerste versie. Controleer ze met je eigen lesmethode voordat leerlingen ermee werken.</li></ul>' +
-      '<h2>Privacy</h2><p>Er is geen account en er wordt niets verstuurd. Niveau, antwoorden en voortgang worden alleen in de browser van de leerling bewaard. Op een gedeelde computer kan een leerling dat hieronder wissen. YouTube-video\'s worden pas geladen als een leerling op <em>Video laden</em> klikt; ze komen via youtube-nocookie.com. Ook de instellingen van de Leeshulp blijven op het apparaat.</p>' +
+      '<h2>Privacy</h2><p>Er is geen account en er wordt niets verstuurd. Niveau, antwoorden en voortgang worden alleen in de browser van de leerling bewaard. Op een gedeelde computer kan een leerling dat hieronder wissen. De site laadt geen bestanden van andere partijen: lettertypen staan op de eigen site en video\'s openen in een nieuw tabblad bij de aanbieder zelf. Ook de instellingen van de Leeshulp blijven op het apparaat.</p>' +
       '<h2>Inhoud aanpassen</h2><ul><li><code>teksten.js</code>: de casusteksten per niveau. Elke regel is een alinea.</li>' +
       '<li><code>inhoud.js</code>: begrippen, moeilijke woorden, brillen, vragen, gatenteksten en de uitspraken van de games.</li>' +
       '<li><code>achtergrond.js</code>: de achtergrondtekst per niveau en de video\'s en bronnen per casus.</li>' +
@@ -849,11 +849,6 @@
         viewGame(gid2); break;
       }
       case 'g-again': gameNieuw(el.getAttribute('data-g')); viewGame(el.getAttribute('data-g')); break;
-      case 'yt': {
-        var vid = el.getAttribute('data-id'), box = document.getElementById('vid-' + vid);
-        if (box) box.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(vid) + '?rel=0&autoplay=1" title="' + esc(el.getAttribute('data-titel') || 'Video') + '" allow="autoplay; encrypted-media; picture-in-picture; fullscreen"></iframe>';
-        break;
-      }
       case 'kop-set': KOP.set = el.getAttribute('data-set'); VIEWS.koppelen(); break;
       case 'kop-start': case 'kop-again': kopStart(); VIEWS.koppelen(); window.scrollTo(0, 0); break;
       case 'kop-check': KOP.checked = true; VIEWS.koppelen(); break;

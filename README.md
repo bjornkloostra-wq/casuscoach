@@ -42,7 +42,7 @@ Open `inhoud.js` of `teksten.js` op GitHub, klik op het potloodje, pas de tekst 
 
 ## Privacy
 
-Er is geen account en er wordt niets verstuurd. YouTube-video's worden pas geladen als een leerling op *Video laden* klikt (via youtube-nocookie.com). Niveau, antwoorden en voortgang blijven in de browser van de leerling. Wissen kan via *Voor de docent* onderaan de site.
+Er is geen account en er wordt niets verstuurd. De site laadt geen bestanden van andere partijen: de lettertypen staan in `fonts/` en video's openen in een nieuw tabblad bij de aanbieder. `vercel.json` stelt strenge beveiligingsheaders in (o.a. een Content-Security-Policy die alleen eigen bestanden toestaat). Niveau, antwoorden en voortgang blijven in de browser van de leerling. Wissen kan via *Voor de docent* onderaan de site.
 
 ## Bronnen en controle
 
